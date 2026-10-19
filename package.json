@@ -1,0 +1,40 @@
+{
+  "name": "pi-agent-session-recap",
+  "version": "0.1.0",
+  "description": "Live task summary and detailed idle-session recap extension for the Pi coding agent.",
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "index.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "pi-coding-agent",
+    "session-recap",
+    "task-summary"
+  ],
+  "scripts": {
+    "test": "node ../../scripts/check-package.mjs . && tsc --noEmit -p ../../tsconfig.json",
+    "prepublishOnly": "npm test"
+  },
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": ">=0.84.0 <1",
+    "@earendil-works/pi-coding-agent": ">=0.84.0 <1",
+    "@earendil-works/pi-tui": ">=0.84.0 <1"
+  }
+}
