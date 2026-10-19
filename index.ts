@@ -269,7 +269,7 @@ export default function sessionRecapExtension(pi: ExtensionAPI) {
 	pi.registerEntryRenderer<SessionRecapEntryData>(ENTRY_TYPE, (entry, { expanded }, theme) => {
 		if (!isDetailedRecapData(entry.data)) return undefined;
 		const container = new Container();
-		const title = entry.data.trigger === "auto" ? "离开期间回顾" : "详细回顾";
+		const title = entry.data.trigger === "auto" ? "Rückblick nach der Pause" : "Ausführlicher Rückblick";
 		const indicator = expanded ? "▼" : "▶";
 		container.addChild(new Text(theme.fg("accent", theme.bold(`${indicator} ${title}`)), 1, 0));
 		if (!expanded) {
@@ -291,7 +291,7 @@ export default function sessionRecapExtension(pi: ExtensionAPI) {
 			WIDGET_KEY,
 			(_tui, theme) =>
 				new TaskSummaryWidget(
-					"本次任务",
+					"Aufgabe",
 					summary,
 					(value) => theme.bold(theme.fg("accent", value)),
 					(value) => theme.fg("muted", value),
@@ -319,7 +319,7 @@ export default function sessionRecapExtension(pi: ExtensionAPI) {
 		generationController = controller;
 		const sessionId = ctx.sessionManager.getSessionId();
 		const previousSummary = currentSummary;
-		showSummary(ctx, "正在提炼");
+		showSummary(ctx, "Zusammenfassung wird erstellt …");
 
 		try {
 			const prompt = [
@@ -372,7 +372,7 @@ export default function sessionRecapExtension(pi: ExtensionAPI) {
 			showSummary(ctx, fallback);
 			if (options.notifyOnError && ctx.hasUI) {
 				ctx.ui.notify(
-					`生成任务摘要失败：${error instanceof Error ? error.message : String(error)}`,
+					`Aufgabe konnte nicht zusammengefasst werden: ${error instanceof Error ? error.message : String(error)}`,
 					"error",
 				);
 			}
@@ -393,7 +393,7 @@ export default function sessionRecapExtension(pi: ExtensionAPI) {
 		const entries = ctx.sessionManager.buildContextEntries();
 		const sourceEntry = getLatestRecappableEntry(entries);
 		if (!sourceEntry) {
-			if (trigger === "manual" && ctx.hasUI) ctx.ui.notify("还没有可回顾的任务", "info");
+			if (trigger === "manual" && ctx.hasUI) ctx.ui.notify("Noch keine Aufgabe für einen Rückblick vorhanden", "info");
 			return;
 		}
 		if (trigger === "auto" && getStoredDetailedRecap(entries)?.sourceEntryId === sourceEntry.id) {
@@ -402,12 +402,12 @@ export default function sessionRecapExtension(pi: ExtensionAPI) {
 
 		const conversation = serializeConversation(entries);
 		if (!conversation) {
-			if (trigger === "manual" && ctx.hasUI) ctx.ui.notify("还没有可回顾的任务", "info");
+			if (trigger === "manual" && ctx.hasUI) ctx.ui.notify("Noch keine Aufgabe für einen Rückblick vorhanden", "info");
 			return;
 		}
 		if (!ctx.model || !ctx.modelRegistry.hasConfiguredAuth(ctx.model)) {
 			if (trigger === "manual" && ctx.hasUI) {
-				ctx.ui.notify("当前模型未配置认证，无法生成详细回顾", "warning");
+				ctx.ui.notify("Für das aktuelle Modell fehlt die Anmeldung; kein Rückblick möglich", "warning");
 			}
 			return;
 		}
@@ -416,7 +416,7 @@ export default function sessionRecapExtension(pi: ExtensionAPI) {
 		const controller = new AbortController();
 		detailedGenerationController = controller;
 		const sessionId = ctx.sessionManager.getSessionId();
-		if (ctx.hasUI) ctx.ui.setStatus(WIDGET_KEY, "正在生成详细回顾");
+		if (ctx.hasUI) ctx.ui.setStatus(WIDGET_KEY, "Rückblick wird erstellt …");
 
 		try {
 			const response = await ctx.modelRegistry.complete(
@@ -447,7 +447,7 @@ export default function sessionRecapExtension(pi: ExtensionAPI) {
 			if (controller.signal.aborted || activeSessionId !== sessionId) return;
 
 			const recap = extractDetailedResponseText(response.content);
-			if (!recap) throw new Error("模型返回了空内容");
+			if (!recap) throw new Error("Das Modell hat keinen Text zurückgegeben");
 			pi.appendEntry(ENTRY_TYPE, {
 				kind: DETAILED_RECAP_KIND,
 				text: recap,
@@ -459,7 +459,7 @@ export default function sessionRecapExtension(pi: ExtensionAPI) {
 			if (controller.signal.aborted || activeSessionId !== sessionId) return;
 			if (trigger === "manual" && ctx.hasUI) {
 				ctx.ui.notify(
-					`生成详细回顾失败：${error instanceof Error ? error.message : String(error)}`,
+					`Rückblick konnte nicht erstellt werden: ${error instanceof Error ? error.message : String(error)}`,
 					"error",
 				);
 			}
@@ -544,7 +544,7 @@ export default function sessionRecapExtension(pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("recap", {
-		description: "生成当前会话的详细任务回顾",
+		description: "Ausführlichen Rückblick für die aktuelle Sitzung erstellen",
 		handler: async (_args, ctx: ExtensionCommandContext) => {
 			clearAutoRecapTimer();
 			await ctx.waitForIdle();
